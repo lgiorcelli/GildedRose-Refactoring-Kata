@@ -1,42 +1,42 @@
 package com.gildedrose
 
 class GildedRose(var items: Array<Item>) {
+    private val strategy = SulfurasStrategy()
 
     fun updateQuality() {
         for (item in items) {
-            if (!item.name.equals("Aged Brie") && !item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                if (!item.name.equals("Sulfuras, Hand of Ragnaros")) {
-                    decreaseQuality(item)
-                }
+            if (strategy.appliesOn(item)) {
+                strategy.decrementSellInDays(item)
+                strategy.updateQuality(item)
             } else {
-                if (item.quality < 50) {
-                    increaseQuality(item)
-                    if (item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (item.sellIn < 11) {
-                            increaseQuality(item)
-                        }
-                        if (item.sellIn < 6) {
-                            increaseQuality(item)
+                if (!item.name.equals("Aged Brie") && !item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
+                    decreaseQuality(item)
+                } else {
+                    if (item.quality < 50) {
+                        increaseQuality(item)
+                        if (item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
+                            if (item.sellIn < 11) {
+                                increaseQuality(item)
+                            }
+                            if (item.sellIn < 6) {
+                                increaseQuality(item)
+                            }
                         }
                     }
                 }
-            }
 
-            if (!item.name.equals("Sulfuras, Hand of Ragnaros")) {
                 decrementSellInDays(item)
-            }
 
-            if (item.sellIn < 0) {
-                if (!item.name.equals("Aged Brie")) {
-                    if (!item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                        if (!item.name.equals("Sulfuras, Hand of Ragnaros")) {
+                if (item.sellIn < 0) {
+                    if (!item.name.equals("Aged Brie")) {
+                        if (!item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
                             decreaseQuality(item)
+                        } else {
+                            dropQuality(item)
                         }
                     } else {
-                        dropQuality(item)
+                        increaseQuality(item)
                     }
-                } else {
-                    increaseQuality(item)
                 }
             }
         }
@@ -61,7 +61,20 @@ class GildedRose(var items: Array<Item>) {
     }
 
 
-
-
 }
+
+class SulfurasStrategy {
+    fun appliesOn(item: Item): Boolean {
+        return item.name == "Sulfuras, Hand of Ragnaros"
+    }
+
+    fun decrementSellInDays(item: Item) {
+        //do nothing
+    }
+
+    fun updateQuality(item: Item) {
+        //do nothing
+    }
+}
+
 

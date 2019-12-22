@@ -1,11 +1,15 @@
 package com.gildedrose
 
 class GildedRose(var items: Array<Item>) {
-    private val strategy = SulfurasStrategy()
+    private val sulfurasStrategy = SulfurasStrategy()
+    private val agedBrieStrategy = AgedBrieStrategy()
+
+    private val strategies = listOf(sulfurasStrategy)
 
     fun updateQuality() {
         for (item in items) {
-            if (strategy.appliesOn(item)) {
+            val strategy = strategies.firstOrNull { it.appliesOn(item) }
+            if (strategy != null) {
                 strategy.decrementSellInDays(item)
                 strategy.updateQuality(item)
             } else {
@@ -60,8 +64,8 @@ class GildedRose(var items: Array<Item>) {
             item.quality++
     }
 
-
 }
+
 
 class SulfurasStrategy {
     fun appliesOn(item: Item): Boolean {
@@ -77,4 +81,18 @@ class SulfurasStrategy {
     }
 }
 
+class AgedBrieStrategy {
+    fun appliesOn(item: Item): Boolean {
+        return item.name == "Aged Brie"
+    }
+
+    fun decrementSellInDays(item: Item) {
+        item.sellIn--
+    }
+
+    fun updateQuality(item: Item) {
+        if (item.quality < 50)
+            item.quality++
+    }
+}
 

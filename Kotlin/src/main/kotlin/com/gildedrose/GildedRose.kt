@@ -4,7 +4,7 @@ class GildedRose(var items: Array<Item>) {
     private val sulfurasStrategy = SulfurasStrategy()
     private val agedBrieStrategy = AgedBrieStrategy()
 
-    private val strategies = listOf(sulfurasStrategy)
+    private val strategies = listOf(sulfurasStrategy, agedBrieStrategy, BackstageTicketsStrategy())
 
     fun updateQuality() {
         for (item in items) {
@@ -13,34 +13,10 @@ class GildedRose(var items: Array<Item>) {
                 strategy.decrementSellInDays(item)
                 strategy.updateQuality(item)
             } else {
-                if (!item.name.equals("Aged Brie") && !item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                    decreaseQuality(item)
-                } else {
-                    if (item.quality < 50) {
-                        increaseQuality(item)
-                        if (item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                            if (item.sellIn < 11) {
-                                increaseQuality(item)
-                            }
-                            if (item.sellIn < 6) {
-                                increaseQuality(item)
-                            }
-                        }
-                    }
-                }
-
+                decreaseQuality(item)
                 decrementSellInDays(item)
-
                 if (item.sellIn < 0) {
-                    if (!item.name.equals("Aged Brie")) {
-                        if (!item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-                            decreaseQuality(item)
-                        } else {
-                            dropQuality(item)
-                        }
-                    } else {
-                        increaseQuality(item)
-                    }
+                    decreaseQuality(item)
                 }
             }
         }
@@ -67,32 +43,75 @@ class GildedRose(var items: Array<Item>) {
 }
 
 
-class SulfurasStrategy {
-    fun appliesOn(item: Item): Boolean {
+interface ItemAgingStrategy {
+    fun appliesOn(item: Item): Boolean
+    fun decrementSellInDays(item: Item)
+    fun updateQuality(item: Item)
+}
+
+class SulfurasStrategy : ItemAgingStrategy {
+    override fun appliesOn(item: Item): Boolean {
         return item.name == "Sulfuras, Hand of Ragnaros"
     }
 
-    fun decrementSellInDays(item: Item) {
+    override fun decrementSellInDays(item: Item) {
         //do nothing
     }
 
-    fun updateQuality(item: Item) {
+    override fun updateQuality(item: Item) {
         //do nothing
     }
 }
 
-class AgedBrieStrategy {
-    fun appliesOn(item: Item): Boolean {
+class AgedBrieStrategy : ItemAgingStrategy {
+    override fun appliesOn(item: Item): Boolean {
         return item.name == "Aged Brie"
     }
 
-    fun decrementSellInDays(item: Item) {
+    override fun decrementSellInDays(item: Item) {
         item.sellIn--
     }
 
-    fun updateQuality(item: Item) {
+    override fun updateQuality(item: Item) {
+        increaseQuality(item)
+        if (item.sellIn < 0) {
+            increaseQuality(item)
+        }
+    }
+
+    private fun increaseQuality(item: Item) {
         if (item.quality < 50)
             item.quality++
     }
+}
+
+class BackstageTicketsStrategy : ItemAgingStrategy {
+    override fun appliesOn(item: Item): Boolean {
+        return item.name == "Backstage passes to a TAFKAL80ETC concert"
+    }
+
+    override fun decrementSellInDays(item: Item) {
+        item.sellIn--
+    }
+
+    override fun updateQuality(item: Item) {
+        if (item.sellIn >= 10) {
+            item.quality++
+        }
+
+        if (item.sellIn in 9 downTo 6) {
+            item.quality += 2
+        }
+
+        if (item.sellIn in 5 downTo 0) {
+            item.quality += 3
+        }
+
+        if (item.sellIn < 0) {
+            item.quality = 0
+        }
+
+    }
+
 }
 

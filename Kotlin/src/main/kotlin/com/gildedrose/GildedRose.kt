@@ -1,24 +1,14 @@
 package com.gildedrose
 
 class GildedRose(var items: Array<Item>) {
-    private val sulfurasStrategy = SulfurasStrategy()
-    private val agedBrieStrategy = AgedBrieStrategy()
 
-    private val strategies = listOf(sulfurasStrategy, agedBrieStrategy, BackstageTicketsStrategy())
+    private val strategies = listOf(SulfurasStrategy(), AgedBrieStrategy(), BackstageTicketsStrategy(), DefaultItemStrategy())
 
     fun updateQuality() {
         for (item in items) {
-            val strategy = strategies.firstOrNull { it.appliesOn(item) }
-            if (strategy != null) {
-                strategy.decrementSellInDays(item)
-                strategy.updateQuality(item)
-            } else {
-                decreaseQuality(item)
-                decrementSellInDays(item)
-                if (item.sellIn < 0) {
-                    decreaseQuality(item)
-                }
-            }
+            val strategy = strategies.first{ it.appliesOn(item) }
+            strategy.decrementSellInDays(item)
+            strategy.updateQuality(item)
         }
     }
 
@@ -47,6 +37,30 @@ interface ItemAgingStrategy {
     fun appliesOn(item: Item): Boolean
     fun decrementSellInDays(item: Item)
     fun updateQuality(item: Item)
+}
+
+
+class DefaultItemStrategy : ItemAgingStrategy {
+    override fun appliesOn(item: Item): Boolean {
+        return true
+    }
+
+    override fun decrementSellInDays(item: Item) {
+        item.sellIn--
+    }
+
+    override fun updateQuality(item: Item) {
+        decreaseQuality(item)
+        if (item.sellIn < 0) {
+            decreaseQuality(item)
+        }
+    }
+
+    private fun decreaseQuality(item: Item) {
+        if (item.quality > 0)
+            item.quality--
+    }
+
 }
 
 class SulfurasStrategy : ItemAgingStrategy {
